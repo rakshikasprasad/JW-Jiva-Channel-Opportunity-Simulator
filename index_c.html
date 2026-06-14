@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jiva Channel Opportunity Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --primary:#1E3A8A;
+    --secondary:#2563EB;
+    --accent:#3B82F6;
+    --success:#10B981;
+    --bg:#F8FAFC;
+    --card:#FFFFFF;
+    --text:#0F172A;
+    --muted:#64748B;
+    --border:#E2E8F0;
+    --shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06);
+    --radius: 14px;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+
+  body{
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .topbar{
+    background:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color:#fff;
+    padding:22px 24px;
+  }
+  .topbar-inner{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand-mark{
+    width:40px; height:40px;
+    border-radius:10px;
+    background:rgba(255,255,255,0.16);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Inter Tight', sans-serif;
+    font-weight:800;
+    font-size:18px;
+    letter-spacing:0.5px;
+    border:1px solid rgba(255,255,255,0.25);
+  }
+  .brand-text h1{
+    font-family:'Inter Tight', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .brand-text p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:rgba(255,255,255,0.78);
+  }
+  .topbar-hero{
+    text-align:right;
+  }
+  .topbar-hero .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.12em;
+    color:rgba(255,255,255,0.7);
+    margin:0 0 4px;
+  }
+  .topbar-hero .value{
+    font-family:'Inter Tight', sans-serif;
+    font-size:28px;
+    font-weight:800;
+    letter-spacing:-0.01em;
+  }
+  .topbar-hero .sub{
+    font-size:12px;
+    color:rgba(255,255,255,0.75);
+    margin-top:2px;
+  }
+
+  .container{
+    max-width:1180px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+    display:flex;
+    flex-direction:column;
+    gap:24px;
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:24px;
+  }
+
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .section-eyebrow{
+    font-family:'Inter Tight', sans-serif;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.1em;
+    color:var(--secondary);
+    background:#EFF4FF;
+    border:1px solid #DBE6FE;
+    padding:4px 10px;
+    border-radius:999px;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .section-title{
+    font-family:'Inter Tight', sans-serif;
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+    color:var(--text);
+  }
+  .section-sub{
+    font-size:13px;
+    color:var(--muted);
+    margin:2px 0 0;
+  }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));
+    gap:16px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .field label{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .field input{
+    font-family:inherit;
+    font-size:15px;
+    font-weight:600;
+    color:var(--text);
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    padding:10px 12px;
+    background:#fff;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+    width:100%;
+  }
+  .field input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(59,130,246,0.15);
+  }
+  .field .unit{
+    position:relative;
+  }
+
+  /* Scenario buttons */
+  .scenario-row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .scenario-btn{
+    font-family:'Inter Tight', sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    padding:10px 18px;
+    border-radius:10px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--primary);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .scenario-btn:hover{
+    border-color:var(--accent);
+    background:#EFF4FF;
+  }
+  .scenario-btn.active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+  }
+  .scenario-btn small{
+    display:block;
+    font-weight:500;
+    font-size:11px;
+    opacity:0.7;
+    margin-top:2px;
+  }
+
+  /* Ramp grid */
+  .ramp-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(78px, 1fr));
+    gap:12px;
+  }
+  .ramp-grid .field input{
+    text-align:center;
+    padding:10px 6px;
+  }
+  .ramp-grid .field label{
+    text-align:center;
+  }
+
+  /* Dashboard */
+  .dashboard-head{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    margin-bottom:6px;
+  }
+  .dashboard-head h2{
+    font-family:'Inter Tight', sans-serif;
+    font-size:22px;
+    font-weight:800;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .dashboard-head p{
+    margin:0;
+    color:var(--muted);
+    font-size:13.5px;
+  }
+
+  .kpi-group-title{
+    font-size:12.5px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:24px 0 12px;
+  }
+  .kpi-group-title:first-of-type{ margin-top:6px; }
+
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));
+    gap:14px;
+  }
+  .kpi-card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    box-shadow:var(--shadow);
+  }
+  .kpi-card .kpi-label{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .kpi-card .kpi-value{
+    font-family:'Inter Tight', sans-serif;
+    font-size:22px;
+    font-weight:800;
+    color:var(--text);
+    letter-spacing:-0.01em;
+  }
+  .kpi-card.success .kpi-value{ color:var(--success); }
+  .kpi-card.accent-bar{
+    border-left:3px solid var(--accent);
+  }
+  .kpi-card.success-bar{
+    border-left:3px solid var(--success);
+  }
+
+  /* Revenue opportunity */
+  .revenue-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1.4fr;
+    gap:16px;
+  }
+  @media (max-width:880px){
+    .revenue-grid{
+      grid-template-columns:1fr;
+    }
+  }
+  .revenue-card{
+    border-radius:16px;
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    min-height:130px;
+  }
+  .revenue-card.minor{
+    background:#fff;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+  }
+  .revenue-card.minor .revenue-value{ color:var(--text); }
+  .revenue-card.hero{
+    background:linear-gradient(135deg, var(--primary) 0%, var(--secondary) 55%, var(--accent) 100%);
+    color:#fff;
+    box-shadow:0 8px 30px rgba(30,58,138,0.35);
+    position:relative;
+    overflow:hidden;
+  }
+  .revenue-card.hero::after{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:200px; height:200px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.08);
+  }
+  .revenue-label{
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.02em;
+    opacity:0.85;
+  }
+  .revenue-card.minor .revenue-label{ color:var(--muted); }
+  .revenue-value{
+    font-family:'Inter Tight', sans-serif;
+    font-weight:800;
+    font-size:30px;
+    letter-spacing:-0.01em;
+    margin-top:14px;
+  }
+  .revenue-card.hero .revenue-value{ font-size:42px; }
+  .revenue-foot{
+    font-size:12.5px;
+    margin-top:10px;
+    opacity:0.8;
+  }
+
+  /* Table */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  thead th{
+    text-align:left;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    font-weight:700;
+    padding:0 10px 10px;
+    border-bottom:1.5px solid var(--border);
+  }
+  tbody td{
+    padding:10px 10px;
+    border-bottom:1px solid var(--border);
+    font-weight:600;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody td.month-name{ color:var(--muted); font-weight:600; }
+  tbody td.num{ font-family:'Inter Tight', sans-serif; font-weight:700; }
+
+  .table-chart-grid{
+    display:grid;
+    grid-template-columns:1.3fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:1000px){
+    .table-chart-grid{ grid-template-columns:1fr; }
+  }
+  .table-wrap{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .table-wrap table{
+    min-width:620px;
+  }
+  .chart-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .toggle-btn{
+    font-family:'Inter Tight', sans-serif;
+    font-size:13px;
+    font-weight:700;
+    padding:8px 16px;
+    border-radius:9px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--primary);
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .toggle-btn:hover{
+    border-color:var(--accent);
+    background:#EFF4FF;
+  }
+  .toggle-btn.active{
+    background:var(--primary);
+    border-color:var(--primary);
+    color:#fff;
+  }
+  .chart-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:14px;
+  }
+  .chart-legend .legend-item{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .chart-legend .dot{
+    width:10px; height:10px;
+    border-radius:50%;
+    display:inline-block;
+  }
+  .chart-wrap{
+    position:relative;
+    height:320px;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:12.5px;
+    padding:8px 20px 40px;
+  }
+
+  .topbar-actions{
+    display:flex;
+    align-items:center;
+  }
+  .pdf-btn{
+    font-family:'Inter Tight', sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    padding:11px 20px;
+    border-radius:10px;
+    border:1.5px solid rgba(255,255,255,0.35);
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:background .15s ease, transform .1s ease;
+    white-space:nowrap;
+  }
+  .pdf-btn:hover{
+    background:rgba(255,255,255,0.22);
+  }
+  .pdf-btn:active{
+    transform:scale(0.98);
+  }
+  .pdf-btn:disabled{
+    opacity:0.65;
+    cursor:default;
+  }
+  .pdf-btn svg{ width:16px; height:16px; flex-shrink:0; }
+
+  /* Hide interactive controls while generating the PDF */
+  body.pdf-export .pdf-hide{
+    visibility:hidden;
+  }
+  body.pdf-export #reportRoot{
+    background:var(--bg);
+  }
+
+  @media (max-width:600px){
+    .topbar-inner{ flex-direction:column; align-items:flex-start; }
+    .topbar-hero{ text-align:left; }
+    .revenue-card.hero .revenue-value{ font-size:34px; }
+    .card{ padding:18px; }
+    .topbar-actions{ width:100%; }
+    .pdf-btn{ width:100%; justify-content:center; }
+  }
+</style>
+</head>
+<body>
+
+<div id="reportRoot">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">JV</div>
+      <div class="brand-text">
+        <h1>Jiva Channel Opportunity Simulator</h1>
+        <p>A 12-month revenue model for your distribution network</p>
+      </div>
+    </div>
+    <div class="topbar-hero">
+      <p class="label">Distributor Revenue · Year 1</p>
+      <div class="value" id="heroDistributorRevenue">₹0</div>
+      <p class="sub" id="heroSub">across 0 retailers</p>
+    </div>
+    <div class="topbar-actions pdf-hide">
+      <button class="pdf-btn" id="downloadPdfBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span id="pdfBtnLabel">Download PDF report</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- SECTION 1: Distributor Information -->
+  <section class="card">
+    <div class="section-head">
+      <span class="section-eyebrow">Step 1</span>
+      <div>
+        <h2 class="section-title">Distributor information</h2>
+        <p class="section-sub">Who is this opportunity for</p>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label for="distributorName">Distributor name</label>
+        <input type="text" id="distributorName" placeholder="e.g. Shree Enterprises" value="">
+      </div>
+      <div class="field">
+        <label for="territory">Territory</label>
+        <input type="text" id="territory" placeholder="e.g. North Bengaluru" value="">
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2: Pricing Inputs -->
+  <section class="card">
+    <div class="section-head">
+      <span class="section-eyebrow">Step 2</span>
+      <div>
+        <h2 class="section-title">Pricing structure</h2>
+        <p class="section-sub">MRP, GST and margins across the channel</p>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label for="mrpIncludingGST">MRP including GST (₹)</label>
+        <input type="number" id="mrpIncludingGST" value="11950" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="gstPercent">GST (%)</label>
+        <input type="number" id="gstPercent" value="18" step="0.5" min="0">
+      </div>
+      <div class="field">
+        <label for="consumerOfferPercent">Consumer offer (%)</label>
+        <input type="number" id="consumerOfferPercent" value="10" step="0.5" min="0">
+      </div>
+      <div class="field">
+        <label for="retailMarginPercent">Retail margin (%)</label>
+        <input type="number" id="retailMarginPercent" value="10" step="0.5" min="0">
+      </div>
+      <div class="field">
+        <label for="dealerMarginPercent">Dealer margin (%)</label>
+        <input type="number" id="dealerMarginPercent" value="7.5" step="0.5" min="0">
+      </div>
+      <div class="field">
+        <label for="distributorMarginPercent">Distributor margin (%)</label>
+        <input type="number" id="distributorMarginPercent" value="5" step="0.5" min="0">
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Network Inputs -->
+  <section class="card">
+    <div class="section-head">
+      <span class="section-eyebrow">Step 3</span>
+      <div>
+        <h2 class="section-title">Network size</h2>
+        <p class="section-sub">The reach this distributor can activate</p>
+      </div>
+    </div>
+
+    <div class="scenario-row pdf-hide">
+      <button class="scenario-btn" id="btnConservative" data-scenario="conservative">
+        Conservative
+        <small>2 dealers · 5 retailers · M12 = 20</small>
+      </button>
+      <button class="scenario-btn" id="btnTarget" data-scenario="target">
+        Target
+        <small>2 dealers · 5 retailers · M12 = 50</small>
+      </button>
+      <button class="scenario-btn" id="btnGrowth" data-scenario="growth">
+        Growth
+        <small>4 dealers · 10 retailers · M12 = 50</small>
+      </button>
+    </div>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="numDistributors">Number of distributors</label>
+        <input type="number" id="numDistributors" value="1" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="dealersPerDistributor">Dealers per distributor</label>
+        <input type="number" id="dealersPerDistributor" value="2" step="1" min="0">
+      </div>
+      <div class="field">
+        <label for="retailersPerDealer">Retailers per dealer</label>
+        <input type="number" id="retailersPerDealer" value="5" step="1" min="0">
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: 12 Month Sales Ramp -->
+  <section class="card">
+    <div class="section-head">
+      <span class="section-eyebrow">Step 4</span>
+      <div>
+        <h2 class="section-title">12-month sales ramp</h2>
+        <p class="section-sub">Devices sold per retailer, per month</p>
+      </div>
+    </div>
+    <div class="ramp-grid" id="rampGrid">
+      <!-- Month inputs generated by JS -->
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="dashboard">
+    <div class="dashboard-head">
+      <h2>Channel opportunity dashboard</h2>
+      <p>Live numbers based on the inputs above</p>
+    </div>
+
+    <div class="kpi-group-title">Per-device economics</div>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">MRP before GST</div>
+        <div class="kpi-value" id="kpiMrpBeforeGST">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Consumer price</div>
+        <div class="kpi-value" id="kpiConsumerPrice">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Retailer price</div>
+        <div class="kpi-value" id="kpiRetailerPrice">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Dealer price</div>
+        <div class="kpi-value" id="kpiDealerPrice">₹0</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Distributor price</div>
+        <div class="kpi-value" id="kpiDistributorPrice">₹0</div>
+      </div>
+    </div>
+
+    <div class="kpi-group-title">Earnings per device</div>
+    <div class="kpi-grid">
+      <div class="kpi-card success-bar success">
+        <div class="kpi-label">Retailer earnings</div>
+        <div class="kpi-value" id="kpiRetailerEarnings">₹0</div>
+      </div>
+      <div class="kpi-card success-bar success">
+        <div class="kpi-label">Dealer earnings</div>
+        <div class="kpi-value" id="kpiDealerEarnings">₹0</div>
+      </div>
+      <div class="kpi-card success-bar success">
+        <div class="kpi-label">Distributor earnings</div>
+        <div class="kpi-value" id="kpiDistributorEarnings">₹0</div>
+      </div>
+    </div>
+
+    <div class="kpi-group-title">Network metrics</div>
+    <div class="kpi-grid">
+      <div class="kpi-card accent-bar">
+        <div class="kpi-label">Total retailers</div>
+        <div class="kpi-value" id="kpiTotalRetailers">0</div>
+      </div>
+      <div class="kpi-card accent-bar">
+        <div class="kpi-label">Annual devices / retailer</div>
+        <div class="kpi-value" id="kpiAnnualDevicesPerRetailer">0</div>
+      </div>
+      <div class="kpi-card accent-bar">
+        <div class="kpi-label">Dealer devices (annual)</div>
+        <div class="kpi-value" id="kpiDealerDevices">0</div>
+      </div>
+      <div class="kpi-card accent-bar">
+        <div class="kpi-label">Distributor devices (annual)</div>
+        <div class="kpi-value" id="kpiDistributorDevices">0</div>
+      </div>
+    </div>
+
+    <div class="kpi-group-title">Revenue opportunity · Year 1</div>
+    <div class="revenue-grid">
+      <div class="revenue-card minor">
+        <div class="revenue-label">Retailer revenue</div>
+        <div class="revenue-value" id="revRetailer">₹0</div>
+        <div class="revenue-foot">Per retailer, across 12 months</div>
+      </div>
+      <div class="revenue-card minor">
+        <div class="revenue-label">Dealer revenue</div>
+        <div class="revenue-value" id="revDealer">₹0</div>
+        <div class="revenue-foot">Per dealer, across all retailers</div>
+      </div>
+      <div class="revenue-card hero">
+        <div class="revenue-label">Distributor revenue</div>
+        <div class="revenue-value" id="revDistributor">₹0</div>
+        <div class="revenue-foot" id="revDistributorFoot">Across the full network in 12 months</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TABLE + CHART -->
+  <section class="card">
+    <div class="section-head">
+      <span class="section-eyebrow">Projection</span>
+      <div>
+        <h2 class="section-title">Monthly sales projection</h2>
+        <p class="section-sub">Per-retailer devices, Month 1 to Month 12</p>
+      </div>
+    </div>
+    <div class="table-chart-grid">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Devices / retailer</th>
+              <th>Devices / dealer</th>
+              <th>Devices / distributor</th>
+              <th>Retailer revenue</th>
+              <th>Dealer revenue</th>
+              <th>Distributor revenue</th>
+            </tr>
+          </thead>
+          <tbody id="monthlyTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="chart-toggle pdf-hide">
+          <button class="toggle-btn active" id="toggleDevices" data-view="devices">Devices / month</button>
+          <button class="toggle-btn" id="toggleRevenue" data-view="revenue">Revenue / month</button>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="growthChart"></canvas>
+        </div>
+        <div class="chart-legend" id="chartLegend"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Jiva Channel Opportunity Simulator · Internal sales planning tool
+</footer>
+
+</div>
+<!-- /reportRoot -->
+
+<script>
+  // ---------- Build 12-month ramp inputs ----------
+  const defaultRamp = [2, 3, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50];
+  const rampGrid = document.getElementById('rampGrid');
+  defaultRamp.forEach((val, i) => {
+    const field = document.createElement('div');
+    field.className = 'field';
+    field.innerHTML = `
+      <label for="month${i+1}">M${i+1}</label>
+      <input type="number" id="month${i+1}" value="${val}" min="0" step="1">
+    `;
+    rampGrid.appendChild(field);
+  });
+
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const num = (id) => {
+    const v = parseFloat($(id).value);
+    return isNaN(v) ? 0 : v;
+  };
+  const fmtCurrency = (v) => '₹' + Math.round(v).toLocaleString('en-IN');
+  const fmtNumber = (v) => Math.round(v).toLocaleString('en-IN');
+
+  // ---------- Chart setup ----------
+  const seriesColors = {
+    retailer: '#3B82F6',
+    dealer: '#2563EB',
+    distributor: '#1E3A8A'
+  };
+
+  const chartViews = {
+    devices: {
+      title: 'Devices / month',
+      formatter: (v) => fmtNumber(v),
+      datasets: [
+        { key: 'retailerDevices', label: 'Retailer devices', color: seriesColors.retailer },
+        { key: 'dealerDevices', label: 'Dealer devices', color: seriesColors.dealer },
+        { key: 'distributorDevices', label: 'Distributor devices', color: seriesColors.distributor }
+      ]
+    },
+    revenue: {
+      title: 'Revenue / month (₹)',
+      formatter: (v) => fmtCurrency(v),
+      datasets: [
+        { key: 'retailerRevenue', label: 'Retailer revenue', color: seriesColors.retailer },
+        { key: 'dealerRevenue', label: 'Dealer revenue', color: seriesColors.dealer },
+        { key: 'distributorRevenue', label: 'Distributor revenue', color: seriesColors.distributor }
+      ]
+    }
+  };
+
+  let currentView = 'devices';
+  let monthlyData = null; // populated by calculate()
+
+  const ctx = document.getElementById('growthChart').getContext('2d');
+  const growthChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: defaultRamp.map((_, i) => 'M' + (i + 1)),
+      datasets: chartViews.devices.datasets.map(ds => ({
+        label: ds.label,
+        data: [],
+        borderColor: ds.color,
+        backgroundColor: ds.color + '20',
+        borderWidth: 3,
+        pointBackgroundColor: ds.color,
+        pointRadius: 3,
+        tension: 0.35,
+        fill: false
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (item) => {
+              const view = chartViews[currentView];
+              return `${item.dataset.label}: ${view.formatter(item.parsed.y)}`;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: '#E2E8F0' },
+          ticks: {
+            callback: (v) => chartViews[currentView].formatter(v)
+          }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  function renderLegend() {
+    const legend = $('chartLegend');
+    legend.innerHTML = '';
+    chartViews[currentView].datasets.forEach(ds => {
+      const item = document.createElement('span');
+      item.className = 'legend-item';
+      item.innerHTML = `<span class="dot" style="background:${ds.color}"></span>${ds.label}`;
+      legend.appendChild(item);
+    });
+  }
+
+  function updateChart() {
+    if (!monthlyData) return;
+    const view = chartViews[currentView];
+    growthChart.data.datasets.forEach((dataset, i) => {
+      dataset.label = view.datasets[i].label;
+      dataset.borderColor = view.datasets[i].color;
+      dataset.backgroundColor = view.datasets[i].color + '20';
+      dataset.pointBackgroundColor = view.datasets[i].color;
+      dataset.data = monthlyData[view.datasets[i].key];
+    });
+    growthChart.update();
+    renderLegend();
+  }
+
+  function setView(view) {
+    currentView = view;
+    document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(view === 'devices' ? 'toggleDevices' : 'toggleRevenue').classList.add('active');
+    updateChart();
+  }
+
+  $('toggleDevices').addEventListener('click', () => setView('devices'));
+  $('toggleRevenue').addEventListener('click', () => setView('revenue'));
+  renderLegend();
+
+  // ---------- Core calculation ----------
+  function calculate() {
+    // Pricing inputs
+    const mrpIncludingGST = num('mrpIncludingGST');
+    const gstPercent = num('gstPercent');
+    const consumerOfferPercent = num('consumerOfferPercent');
+    const retailMarginPercent = num('retailMarginPercent');
+    const dealerMarginPercent = num('dealerMarginPercent');
+    const distributorMarginPercent = num('distributorMarginPercent');
+
+    // Network inputs
+    const dealersPerDistributor = num('dealersPerDistributor');
+    const retailersPerDealer = num('retailersPerDealer');
+
+    // Ramp
+    const months = [];
+    for (let i = 1; i <= 12; i++) months.push(num('month' + i));
+
+    // Step 1-5: pricing waterfall
+    const mrpBeforeGST = mrpIncludingGST / (1 + gstPercent / 100);
+    const consumerPrice = mrpBeforeGST * (1 - consumerOfferPercent / 100);
+    const retailerPrice = mrpBeforeGST * (1 - (consumerOfferPercent + retailMarginPercent) / 100);
+    const dealerPrice = mrpBeforeGST * (1 - (consumerOfferPercent + retailMarginPercent + dealerMarginPercent) / 100);
+    const distributorPrice = mrpBeforeGST * (1 - (consumerOfferPercent + retailMarginPercent + dealerMarginPercent + distributorMarginPercent) / 100);
+
+    // Earnings per device
+    const retailerEarnings = consumerPrice - retailerPrice;
+    const dealerEarnings = retailerPrice - dealerPrice;
+    const distributorEarnings = dealerPrice - distributorPrice;
+
+    // Network calculations
+    const totalRetailers = dealersPerDistributor * retailersPerDealer;
+    const annualDevicesPerRetailer = months.reduce((a, b) => a + b, 0);
+    const dealerDevices = annualDevicesPerRetailer * retailersPerDealer;
+    const distributorDevices = annualDevicesPerRetailer * retailersPerDealer * dealersPerDistributor;
+
+    // Revenue calculations
+    const retailerRevenue = annualDevicesPerRetailer * retailerEarnings;
+    const dealerRevenue = dealerDevices * dealerEarnings;
+    const distributorRevenue = distributorDevices * distributorEarnings;
+
+    // ---- Update Per-device economics ----
+    $('kpiMrpBeforeGST').textContent = fmtCurrency(mrpBeforeGST);
+    $('kpiConsumerPrice').textContent = fmtCurrency(consumerPrice);
+    $('kpiRetailerPrice').textContent = fmtCurrency(retailerPrice);
+    $('kpiDealerPrice').textContent = fmtCurrency(dealerPrice);
+    $('kpiDistributorPrice').textContent = fmtCurrency(distributorPrice);
+
+    // ---- Update Earnings per device ----
+    $('kpiRetailerEarnings').textContent = fmtCurrency(retailerEarnings);
+    $('kpiDealerEarnings').textContent = fmtCurrency(dealerEarnings);
+    $('kpiDistributorEarnings').textContent = fmtCurrency(distributorEarnings);
+
+    // ---- Update Network metrics ----
+    $('kpiTotalRetailers').textContent = fmtNumber(totalRetailers);
+    $('kpiAnnualDevicesPerRetailer').textContent = fmtNumber(annualDevicesPerRetailer);
+    $('kpiDealerDevices').textContent = fmtNumber(dealerDevices);
+    $('kpiDistributorDevices').textContent = fmtNumber(distributorDevices);
+
+    // ---- Update Revenue opportunity ----
+    $('revRetailer').textContent = fmtCurrency(retailerRevenue);
+    $('revDealer').textContent = fmtCurrency(dealerRevenue);
+    $('revDistributor').textContent = fmtCurrency(distributorRevenue);
+    $('revDistributorFoot').textContent =
+      `Across ${fmtNumber(totalRetailers)} retailers and ${fmtNumber(dealersPerDistributor)} dealers in 12 months`;
+
+    // ---- Update hero bar ----
+    $('heroDistributorRevenue').textContent = fmtCurrency(distributorRevenue);
+    $('heroSub').textContent = `across ${fmtNumber(totalRetailers)} retailers · ${fmtNumber(distributorDevices)} devices / year`;
+
+    // ---- Update monthly table ----
+    const tbody = $('monthlyTableBody');
+    tbody.innerHTML = '';
+
+    const retailerDevicesArr = [];
+    const dealerDevicesArr = [];
+    const distributorDevicesArr = [];
+    const retailerRevenueArr = [];
+    const dealerRevenueArr = [];
+    const distributorRevenueArr = [];
+
+    months.forEach((val, i) => {
+      const dDev = val * retailersPerDealer;
+      const distDev = val * retailersPerDealer * dealersPerDistributor;
+      const rRev = val * retailerEarnings;
+      const dRev = dDev * dealerEarnings;
+      const distRev = distDev * distributorEarnings;
+
+      retailerDevicesArr.push(val);
+      dealerDevicesArr.push(dDev);
+      distributorDevicesArr.push(distDev);
+      retailerRevenueArr.push(rRev);
+      dealerRevenueArr.push(dRev);
+      distributorRevenueArr.push(distRev);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="month-name">Month ${i + 1}</td>
+        <td class="num">${fmtNumber(val)}</td>
+        <td class="num">${fmtNumber(dDev)}</td>
+        <td class="num">${fmtNumber(distDev)}</td>
+        <td class="num">${fmtCurrency(rRev)}</td>
+        <td class="num">${fmtCurrency(dRev)}</td>
+        <td class="num">${fmtCurrency(distRev)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // ---- Update chart ----
+    monthlyData = {
+      retailerDevices: retailerDevicesArr,
+      dealerDevices: dealerDevicesArr,
+      distributorDevices: distributorDevicesArr,
+      retailerRevenue: retailerRevenueArr,
+      dealerRevenue: dealerRevenueArr,
+      distributorRevenue: distributorRevenueArr
+    };
+    updateChart();
+  }
+
+  // ---------- Scenarios ----------
+  const scenarios = {
+    conservative: {
+      dealersPerDistributor: 2,
+      retailersPerDealer: 5,
+      months: [1, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
+    },
+    target: {
+      dealersPerDistributor: 2,
+      retailersPerDealer: 5,
+      months: [2, 3, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    },
+    growth: {
+      dealersPerDistributor: 4,
+      retailersPerDealer: 10,
+      months: [2, 3, 5, 7, 10, 12, 15, 20, 25, 30, 40, 50]
+    }
+  };
+
+  function applyScenario(name) {
+    const s = scenarios[name];
+    if (!s) return;
+    $('dealersPerDistributor').value = s.dealersPerDistributor;
+    $('retailersPerDealer').value = s.retailersPerDealer;
+    s.months.forEach((val, i) => { $('month' + (i + 1)).value = val; });
+
+    document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(
+      'btn' + name.charAt(0).toUpperCase() + name.slice(1)
+    ).classList.add('active');
+
+    calculate();
+  }
+
+  $('btnConservative').addEventListener('click', () => applyScenario('conservative'));
+  $('btnTarget').addEventListener('click', () => applyScenario('target'));
+  $('btnGrowth').addEventListener('click', () => applyScenario('growth'));
+
+  // ---------- Live updates on any input ----------
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', calculate);
+  });
+
+  // ---------- Initial run ----------
+  calculate();
+  applyScenario('target');
+
+  // ---------- PDF export ----------
+  async function downloadPDF() {
+    const btn = $('downloadPdfBtn');
+    const label = $('pdfBtnLabel');
+    const originalLabel = label.textContent;
+
+    btn.disabled = true;
+    label.textContent = 'Generating PDF…';
+
+    // Hide interactive-only controls so the PDF looks like a clean report
+    document.body.classList.add('pdf-export');
+
+    // Give the browser a moment to apply the visibility change
+    await new Promise(r => setTimeout(r, 50));
+
+    try {
+      const target = $('reportRoot');
+      const canvas = await html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#F8FAFC',
+        windowWidth: target.scrollWidth
+      });
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgData = canvas.toDataURL('image/png');
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      const distributorName = $('distributorName').value.trim();
+      const fileBase = distributorName
+        ? distributorName.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '')
+        : 'Jiva-Channel-Opportunity';
+
+      pdf.save(`${fileBase}-Report.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert('Sorry, the PDF could not be generated. Please try again.');
+    } finally {
+      document.body.classList.remove('pdf-export');
+      btn.disabled = false;
+      label.textContent = originalLabel;
+    }
+  }
+
+  $('downloadPdfBtn').addEventListener('click', downloadPDF);
+</script>
+
+</body>
+</html>
